@@ -4,56 +4,35 @@ on:
   schedule:
     - cron: "21 21 * * *"
   push:
-    branches: ["main"]
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 env:
-  REGISTRY: ghcr.io
   IMAGE_NAME: "workstation"
   IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
   REGISTRY_USER: ${{ github.actor }}
   REGISTRY_PASSWORD: ${{ github.token }}
 
-
 jobs:
   podman-build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4.1.1
 
+      - name: Install utils
+        run: sudo apt -y install just
+
       - name: Build container image
-        uses: redhat-actions/buildah-build@v3.1.0
-        with:
-          context: "."
-          containerfiles: Containerfile
-          image: ${{ env.IMAGE_NAME }}
-          tags: unchunked
-          layers: false
-          oci: true
-
-
-      - name: Inspect unchunked image
-        id: inspect
-        run: |
-          echo output="$(podman inspect ${{ env.IMAGE_NAME }}:unchunked)" >> $GITHUB_OUTPUT
+        run: just build
 
       - name: Chunkah
-        uses: redhat-actions/buildah-build@v3.1.0
-        with:
-          context: "."
-          containerfiles: https://github.com/coreos/chunkah/releases/download/v0.6.0/Containerfile.splitter
-          image: ${{ env.IMAGE_NAME }}
-          tags: latest
-          layers: false
-          oci: true
-          build-args: |
-            CHUNKAH_CONFIG_STR=${{ steps.inspect.outputs.output }}
-            CHUNKAH_ARGS="--prune /sysroot/ --max-layers 128"
-          extra-args: |
-            -v .:/run/src
-            --security-opt=label=disable
+        if: github.event_name == 'push'
+        run: just chunk
 
       - name: Push to ghcr.io
+        if: github.event_name == 'push'
         uses: redhat-actions/push-to-registry@v3.0.0
         with:
           image: ${{ env.IMAGE_NAME }}
