@@ -65,6 +65,7 @@ centpkg \
 clang \
 cmake \
 composefs-devel \
+elfutils-libelf-devel \
 emacs-nw \
 erofs-utils \
 fedora-packager \
