@@ -83,7 +83,6 @@ golang-x-tools-gopls \
 inotify-tools \
 json-c-devel \
 just \
-keepassxc \
 krb5-workstation \
 libcurl-devel \
 libmodulemd-devel \
