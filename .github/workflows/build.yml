@@ -17,6 +17,9 @@ env:
 jobs:
   podman-build:
     runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4.1.1
