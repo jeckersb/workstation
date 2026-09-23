@@ -1,0 +1,63 @@
+
+name: Build, chunk, and push
+on:
+  schedule:
+    - cron: "21 21 * * *"
+  push:
+    branches: ["main"]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: "workstation"
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  REGISTRY_USER: ${{ github.actor }}
+  REGISTRY_PASSWORD: ${{ github.token }}
+
+
+jobs:
+  podman-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4.1.1
+
+      - name: Build container image
+        uses: redhat-actions/buildah-build@v3.1.0
+        with:
+          context: "."
+          containerfiles: Containerfile
+          image: ${{ env.IMAGE_NAME }}
+          tags: unchunked
+          layers: false
+          oci: true
+
+
+      - name: Inspect unchunked image
+        id: inspect
+        run: |
+          echo output="$(podman inspect ${{ env.IMAGE_NAME }}:unchunked)" >> $GITHUB_OUTPUT
+
+      - name: Chunkah
+        uses: redhat-actions/buildah-build@v3.1.0
+        with:
+          context: "."
+          containerfiles: https://github.com/coreos/chunkah/releases/download/v0.6.0/Containerfile.splitter
+          image: ${{ env.IMAGE_NAME }}
+          tags: latest
+          layers: false
+          oci: true
+          build-args: |
+            CHUNKAH_CONFIG_STR=${{ steps.inspect.outputs.output }}
+            CHUNKAH_ARGS="--prune /sysroot/ --max-layers 128"
+          extra-args: |
+            -v .:/run/src
+            --security-opt=label=disable
+
+      - name: Push to ghcr.io
+        uses: redhat-actions/push-to-registry@v3.0.0
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          tags: "latest"
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ env.REGISTRY_PASSWORD }}
