@@ -31,11 +31,11 @@ jobs:
         run: just build
 
       - name: Chunkah
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: just chunk
 
       - name: Push to ghcr.io
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         uses: redhat-actions/push-to-registry@v3.0.0
         with:
           image: ${{ env.IMAGE_NAME }}
