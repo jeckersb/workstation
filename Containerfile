@@ -124,6 +124,7 @@ RUN <<EORUN
 set -xeuo pipefail
 
 rm -f /var/log/dnf*
+find /var/cache -type f -exec rm '{}' \;
 EORUN
 
 # Configure
