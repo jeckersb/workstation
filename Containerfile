@@ -119,14 +119,6 @@ rm -f /usr/lib/systemd/system/bootc-fetch-apply-updates.timer
 
 EORUN
 
-# Cleanup
-RUN <<EORUN
-set -xeuo pipefail
-
-rm -f /var/log/dnf*
-find /var/cache -type f -exec rm '{}' \;
-EORUN
-
 # Configure
 RUN <<EORUN
 set -xeuo pipefail
@@ -138,6 +130,14 @@ cat > /usr/lib/bootc/install/90-xfs.toml <<EOF
 type = "xfs"
 EOF
 
+EORUN
+
+# Cleanup
+RUN <<EORUN
+set -xeuo pipefail
+
+rm -f /var/log/dnf*
+find /var/cache -type f -exec rm '{}' \;
 EORUN
 
 # lint
