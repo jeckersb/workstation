@@ -27,6 +27,10 @@ jobs:
       - name: Install utils
         run: sudo apt -y install just
 
+      - name: Determine Fedora version
+        id: version
+        run: echo "version=$(just --evaluate version)" >> "$GITHUB_OUTPUT"
+
       - name: Build container image
         run: just build
 
@@ -39,7 +43,7 @@ jobs:
         uses: redhat-actions/push-to-registry@v3.0.0
         with:
           image: ${{ env.IMAGE_NAME }}
-          tags: "latest"
+          tags: f${{ steps.version.outputs.version }}-latest
           registry: ${{ env.IMAGE_REGISTRY }}
           username: ${{ env.REGISTRY_USER }}
           password: ${{ env.REGISTRY_PASSWORD }}
