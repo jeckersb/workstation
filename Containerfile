@@ -94,6 +94,7 @@ libvirt-devel \
 libzstd-devel \
 lingot \
 moreutils \
+nodejs26-npm-bin \
 openssl-devel \
 ostree-devel \
 pandoc \
